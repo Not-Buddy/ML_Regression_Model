@@ -1,27 +1,27 @@
-# sample_data.py
+"""
+Sample data for testing the house price prediction system
+"""
 
-# Optional: a simple list the model can consume via predict_multiple
 def get_sample_feature_list():
-    # Each tuple is (BHK, Sqft, Bathrooms)
+    """Return predefined sample features for testing"""
     return [
-        (2, 1056, 2),   # e.g., 2 BHK, ~1056 sqft, 2 baths
-        (3, 1500, 3),
-        (1, 600, 1),
-        (4, 2100, 4),
-        (2, 900, 2),
-        (3, 1800, 3),
+        (2, 1100, 2),   # 2 BHK, 1100 sqft, 2 bathrooms
+        (3, 1600, 3),   # 3 BHK, 1600 sqft, 3 bathrooms
+        (1, 600, 1),    # 1 BHK, 600 sqft, 1 bathroom
+        (4, 2200, 4),   # 4 BHK, 2200 sqft, 4 bathrooms
+        (2, 900, 2),    # 2 BHK, 900 sqft, 2 bathrooms
     ]
 
-# Optional: a pandas DataFrame with the exact feature column names
-def get_sample_dataframe():
-    import pandas as pd
-    rows = [
-        {"BHK": 2, "Sqft": 1056, "No of Bathrooms": 2},
-        {"BHK": 3, "Sqft": 1500, "No of Bathrooms": 3},
-        {"BHK": 1, "Sqft": 600,  "No of Bathrooms": 1},
-        {"BHK": 4, "Sqft": 2100, "No of Bathrooms": 4},
-        {"BHK": 2, "Sqft": 900,  "No of Bathrooms": 2},
-        {"BHK": 3, "Sqft": 1800, "No of Bathrooms": 3},
-    ]
-    return pd.DataFrame(rows, columns=["BHK", "Sqft", "No of Bathrooms"])
-
+def get_test_cases():
+    """Return test cases with expected behavior"""
+    return {
+        'valid_cases': [
+            {'input': (2, 1000, 2), 'description': 'Standard 2BHK apartment'},
+            {'input': (3, 1500, 3), 'description': 'Spacious 3BHK house'},
+            {'input': (1, 500, 1), 'description': 'Compact 1BHK unit'},
+        ],
+        'edge_cases': [
+            {'input': (1, 300, 1), 'description': 'Minimum size property'},
+            {'input': (4, 3000, 4), 'description': 'Large family house'},
+        ]
+    }

@@ -82,12 +82,20 @@ def handle_custom_prediction(predictor):
     return True
 
 
+import random
+import numpy as np
+
 def handle_demo_predictions(predictor, df_clean):
-    """Handle demo predictions from cleaned data"""
-    print("\nPredicting on 5 random rows from cleaned data (demo)...")
-    demo_df = df_clean.sample(5, random_state=42)
+    """Handle demo predictions from cleaned data with random unique rows each time"""
+    print("\nPredicting on 5 random unique rows from cleaned data (demo)...")
+    
+    # Use random seed for different results each time
+    random_seed = random.randint(0, 1000000)
+    demo_df = df_clean.sample(5, random_state=random_seed)
     
     predictions = []
+    actual_prices = []
+    
     for _, row in demo_df.iterrows():
         bhk = int(row["BHK"])
         sqft = float(row["Sqft"])
@@ -96,16 +104,29 @@ def handle_demo_predictions(predictor, df_clean):
         area_type = row.get("Area_Type", "Unknown")
         
         pred = predictor.predict_price(bhk, sqft, baths, location, area_type)
-        predictions.append(pred)
-    
-    for (_, row), pred in zip(demo_df.iterrows(), predictions):
-        bhk = int(row["BHK"])
-        sqft = float(row["Sqft"])
-        baths = float(row["No of Bathrooms"])
         actual = float(row["Price (In Lakhs)"])
         
+        predictions.append(pred)
+        actual_prices.append(actual)
+        
+        # Calculate error for this prediction
+        error = abs(pred - actual)
+        error_pct = (error / actual) * 100
+        
         print(f"BHK={bhk}, Sqft={sqft:.0f}, Baths={baths:.0f} -> "
-              f"Pred ₹{pred:.2f}L (₹{pred*100000:.0f}), Actual ₹{actual:.2f}L")
+              f"Pred ₹{pred:.2f}L (₹{pred*100000:.0f}), "
+              f"Actual ₹{actual:.2f}L, Error: {error_pct:.1f}%")
+    
+    # Calculate overall demo statistics
+    predictions = np.array(predictions)
+    actual_prices = np.array(actual_prices)
+    
+    mae = np.mean(np.abs(predictions - actual_prices))
+    mape = np.mean(np.abs((predictions - actual_prices) / actual_prices)) * 100
+    
+    print(f"\n📊 Demo Statistics:")
+    print(f"   Mean Absolute Error: ₹{mae:.2f} Lakhs")
+    print(f"   Mean Absolute Percentage Error: {mape:.1f}%")
 
 
 def handle_feature_analysis(predictor):
@@ -238,6 +259,60 @@ def main():
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
 
+
+def test_model_persistence(predictor, X, y):
+    """Test model saving and loading functionality"""
+    print("\n" + "="*50)
+    print("TESTING MODEL PERSISTENCE")
+    print("="*50)
+    
+    # Train the model first
+    print("1. Training model for persistence test...")
+    original_metrics = predictor.train_model(X, y)
+    
+    # Make a prediction before saving
+    test_prediction_before = predictor.predict_price(3, 1500, 2, 'Whitefield', 'Built-up  Area')
+    print(f"2. Prediction before saving: ₹{test_prediction_before:.2f} Lakhs")
+    
+    # Save the model
+    save_path = "test_model_persistence"
+    print(f"3. Saving model to '{save_path}'...")
+    predictor.save_model(save_path, include_metadata=True)
+    
+    # Create a new predictor instance
+    print("4. Creating new predictor instance...")
+    if predictor.model_type == 'linear':
+        new_predictor = LinearRegressionPredictor(use_advanced_features=predictor.use_advanced_features)
+    else:
+        new_predictor = RandomForestPredictor(use_advanced_features=predictor.use_advanced_features)
+    
+    # Load the model
+    print(f"5. Loading model from '{save_path}'...")
+    new_predictor.load_model(save_path)
+    
+    # Make the same prediction with loaded model
+    test_prediction_after = new_predictor.predict_price(3, 1500, 2, 'Whitefield', 'Built-up  Area')
+    print(f"6. Prediction after loading: ₹{test_prediction_after:.2f} Lakhs")
+    
+    # Verify predictions match
+    prediction_diff = abs(test_prediction_before - test_prediction_after)
+    print(f"7. Prediction difference: ₹{prediction_diff:.6f} Lakhs")
+    
+    if prediction_diff < 0.001:  # Very small tolerance
+        print("✅ SUCCESS: Model persistence is working correctly!")
+        print("   - Predictions match exactly after save/load")
+    else:
+        print("❌ ERROR: Model persistence failed!")
+        print(f"   - Predictions don't match (difference: {prediction_diff:.6f})")
+    
+    # Verify model attributes
+    print("\n8. Verifying model attributes:")
+    print(f"   - Model type: {new_predictor.model_type}")
+    print(f"   - Is trained: {new_predictor.is_trained}")
+    print(f"   - Use advanced features: {new_predictor.use_advanced_features}")
+    print(f"   - Feature columns: {len(new_predictor.feature_columns) if new_predictor.feature_columns else 'None'}")
+    
+    return prediction_diff < 0.001
 
 if __name__ == "__main__":
     main()

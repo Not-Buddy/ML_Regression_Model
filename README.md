@@ -37,7 +37,7 @@ This system provides an interactive interface to predict house prices based on v
    
    # Alternative: Use the provided activation script
    chmod +x activateenv.sh
-   ./activateenv.sh
+   source ./activateenv.sh
    ```
 
 3. **Install required dependencies**

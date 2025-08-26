@@ -97,6 +97,8 @@ class RandomForestPredictor(BaseHousePricePredictor):
             'rmse': np.sqrt(mse),
             'feature_importance': self.feature_importance_df
         }
+
+    
     
     def get_feature_importance(self):
         """Get feature importance from the trained model"""

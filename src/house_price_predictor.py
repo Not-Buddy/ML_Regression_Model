@@ -7,12 +7,16 @@ Description: Base class for house price prediction
 
 import pandas as pd
 import numpy as np
+import joblib          
+import json            
+from datetime import datetime  
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.model_selection import cross_val_score
 import warnings
 from clean_data import load_and_clean_data, prepare_features
+
 
 warnings.filterwarnings('ignore')
 
@@ -33,6 +37,57 @@ class BaseHousePricePredictor:
         # Store feature columns for prediction
         self.feature_columns = None
         self.model = None  # To be set by child classes
+
+    def save_model(self, filepath, include_metadata=True):
+        """Save model with metadata"""
+        if not self.is_trained:
+            raise ValueError("Model must be trained before saving")
+        
+        # Save the model
+        joblib.dump(self.model, f"{filepath}_model.pkl")
+        # Save encoders and scalers
+        joblib.dump(self.location_encoder, f"{filepath}_location_encoder.pkl")
+        joblib.dump(self.area_encoder, f"{filepath}_area_encoder.pkl")
+        joblib.dump(self.scaler, f"{filepath}_scaler.pkl")
+        
+        if include_metadata:
+            metadata = {
+                'model_type': getattr(self, 'model_type', 'unknown'),
+                'use_advanced_features': self.use_advanced_features,
+                'feature_columns': self.feature_columns,
+                'is_trained': self.is_trained,
+                'training_date': datetime.now().isoformat(),
+                'model_params': self.model.get_params() if self.model else {}
+            }
+            with open(f"{filepath}_metadata.json", 'w') as f:
+                json.dump(metadata, f, indent=2)
+        
+        print(f"✅ Model saved successfully to {filepath}")
+
+    def load_model(self, filepath):
+        """Load model with metadata"""
+        try:
+            self.model = joblib.load(f"{filepath}_model.pkl")
+            self.location_encoder = joblib.load(f"{filepath}_location_encoder.pkl")
+            self.area_encoder = joblib.load(f"{filepath}_area_encoder.pkl")
+            self.scaler = joblib.load(f"{filepath}_scaler.pkl")
+            
+            with open(f"{filepath}_metadata.json", 'r') as f:
+                metadata = json.load(f)
+            
+            self.feature_columns = metadata['feature_columns']
+            self.is_trained = metadata['is_trained']
+            self.use_advanced_features = metadata['use_advanced_features']
+            
+            print(f"✅ Model loaded successfully from {filepath}")
+            print(f"   Training date: {metadata.get('training_date', 'Unknown')}")
+            
+        except FileNotFoundError as e:
+            print(f"❌ Model files not found at {filepath}. Error: {e}")
+            raise
+        except Exception as e:
+            print(f"❌ Error loading model: {e}")
+            raise
     
     def load_and_clean_data(self, csv_file_path):
         """Load and clean the dataset with advanced processing"""

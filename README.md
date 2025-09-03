@@ -176,6 +176,86 @@ You can customize the models by:
 - Changing outlier removal thresholds
 - Adding Jupyter notebooks in the `notebooks/` directory for data exploration
 
+## Architecture diagram 
+
+
+```mermaid
+flowchart TD
+    A[User Input] -->|House Details| B{Main Application<br/>main.py}
+    B --> C{Choose Model Type}
+    C -->|Linear Regression| D[Linear Regression<br/>linear_regression.py]
+    C -->|Random Forest| E[Random Forest<br/>random_forest.py]    
+    B --> F{Choose Feature Set}
+    F -->|Basic| G[Basic Features<br/>BHK, Sqft, Bathrooms]
+    F -->|Advanced| H[Advanced Features<br/>Location, Area Type,<br/>Derived Ratios]
+    I[(CSV Dataset<br/>Bengaluru_House_Data.csv)] --> J[Data Preprocessing<br/>clean_data.py]
+    J --> K[Data Cleaning]
+    K --> L[Outlier Detection & Removal]
+    L --> M[Feature Engineering]
+    M --> N{Feature Processing}
+    N -->|Basic Path| G
+    N -->|Advanced Path| H
+    G --> O[Model Training]
+    H --> O    
+    O --> D
+    O --> E
+    
+    D --> P[Linear Prediction<br/>+ Feature Coefficients]
+    E --> Q[RF Prediction<br/>+ Feature Importance<br/>+ Confidence Intervals]
+    
+    P --> R[Price Prediction Output]
+    Q --> R
+    
+    B --> S[Interactive Options]
+    S --> T[Custom Input]
+    S --> U[Demo Mode]
+    S --> V[Feature Analysis]
+    S --> W[Model Evaluation]
+    
+    T --> A
+    U --> X[Sample Data<br/>sample_data.py]
+    V --> Y[Performance Metrics<br/>R², MSE, RMSE]
+    W --> Z[Cross Validation<br/>Scores]
+    
+    X --> O
+    Y --> R
+    Z --> R
+    
+    AA[Base Class<br/>house_price_predictor.py] -.->|Inherits| D
+    AA -.->|Inherits| E
+    
+    %% Dark theme styling with high contrast
+    style A fill:#2d3748,stroke:#4a5568,stroke-width:2px,color:#ffffff
+    style B fill:#1a202c,stroke:#2d3748,stroke-width:3px,color:#ffffff
+    style C fill:#2d3748,stroke:#4a5568,stroke-width:2px,color:#ffffff
+    style D fill:#553c9a,stroke:#6b46c1,stroke-width:2px,color:#ffffff
+    style E fill:#065f46,stroke:#059669,stroke-width:2px,color:#ffffff
+    style F fill:#2d3748,stroke:#4a5568,stroke-width:2px,color:#ffffff
+    style G fill:#1e40af,stroke:#3b82f6,stroke-width:2px,color:#ffffff
+    style H fill:#1e40af,stroke:#3b82f6,stroke-width:2px,color:#ffffff
+    style I fill:#92400e,stroke:#f59e0b,stroke-width:2px,color:#ffffff
+    style J fill:#374151,stroke:#6b7280,stroke-width:2px,color:#ffffff
+    style K fill:#374151,stroke:#6b7280,stroke-width:2px,color:#ffffff
+    style L fill:#374151,stroke:#6b7280,stroke-width:2px,color:#ffffff
+    style M fill:#374151,stroke:#6b7280,stroke-width:2px,color:#ffffff
+    style N fill:#2d3748,stroke:#4a5568,stroke-width:2px,color:#ffffff
+    style O fill:#7c2d12,stroke:#ea580c,stroke-width:2px,color:#ffffff
+    style P fill:#553c9a,stroke:#6b46c1,stroke-width:2px,color:#ffffff
+    style Q fill:#065f46,stroke:#059669,stroke-width:2px,color:#ffffff
+    style R fill:#7f1d1d,stroke:#dc2626,stroke-width:3px,color:#ffffff
+    style S fill:#2d3748,stroke:#4a5568,stroke-width:2px,color:#ffffff
+    style T fill:#1e3a8a,stroke:#3b82f6,stroke-width:2px,color:#ffffff
+    style U fill:#1e3a8a,stroke:#3b82f6,stroke-width:2px,color:#ffffff
+    style V fill:#1e3a8a,stroke:#3b82f6,stroke-width:2px,color:#ffffff
+    style W fill:#1e3a8a,stroke:#3b82f6,stroke-width:2px,color:#ffffff
+    style X fill:#374151,stroke:#6b7280,stroke-width:2px,color:#ffffff
+    style Y fill:#7c2d12,stroke:#ea580c,stroke-width:2px,color:#ffffff
+    style Z fill:#7c2d12,stroke:#ea580c,stroke-width:2px,color:#ffffff
+    style AA fill:#581c87,stroke:#8b5cf6,stroke-width:2px,color:#ffffff
+    
+    %% Link styling for dark theme
+    linkStyle default stroke:#9ca3af,stroke-width:2px
+```
 ## 🐛 Troubleshooting
 
 **Common Issues:**
